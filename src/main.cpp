@@ -150,7 +150,7 @@ void loop()
         if(flagY) sXmms = 200;
         
 
-        if(nrf.avalible() && nrf.getadress() == NRFchannel)
+        if(nrf.avalible() && nrf.getadress() == NRFchannel-16)
         {   
             if(nrf.kickFlag())kicker.kick();
             sXmms = nrf.getsXmms();
