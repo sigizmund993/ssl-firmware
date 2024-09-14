@@ -13,11 +13,12 @@ class NRF : public Updatable
   private:
   RF24 rad;
   uint8_t adress;
-  int sX;
-  int sY;
-  int sW;
+  int8_t sX;
+  int8_t sY;
+  int8_t sW;
   uint8_t flags;
-
+  bool isUpdated;
+  int NRFchannel = 1;
   public:
   NRF(uint8_t chipEnable, uint8_t chipSelect) : rad(chipEnable,chipSelect){}
   ERROR_TYPE init()
@@ -40,21 +41,34 @@ class NRF : public Updatable
   }
   ERROR_TYPE update() override
   {
-    if(rad.available())
+    while(rad.available())
     {
       byte recv[6];
       rad.read(&recv, 6);
-      adress = recv[0];
-      sX = recv[1];
-      sY = recv[2];
-      sW = recv[3];
-      flags = recv[5];
+      if(recv[0] == NRFchannel+16)
+      {
+        adress = recv[0];
+        sX = recv[1];
+        sY = recv[2];
+        sW = recv[3];
+        flags = recv[5];
+        isUpdated = 1;
+      }
+      
     }
     return NO_ERRORS;
   }
+  void setChannel(int ch)
+  {
+    NRFchannel = ch;
+  }
+  void resetUpdate()
+  {
+    isUpdated = 0;
+  }
   bool avalible()
   {
-    return rad.available();
+    return !isUpdated;
   }
   uint8_t getadress()
   {

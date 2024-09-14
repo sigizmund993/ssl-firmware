@@ -103,8 +103,8 @@ void setup()
 
 uint32_t lastUpdate = 0;
 Integrator yawInt(TS_S);
-RateLimiter sXlim(TS_S, 9999);
-RateLimiter sYlim(TS_S, 9999);
+RateLimiter sXlim(TS_S, 400000);
+RateLimiter sYlim(TS_S, 400000);
 bool flagY = false;
 void loop()
 {
@@ -112,6 +112,7 @@ void loop()
     while (micros() < lastUpdate + TS_MCS);
     lastUpdate = micros();
     // s
+    nrf.setChannel(NRFchannel);
     updIN();
     
     
@@ -144,22 +145,30 @@ void loop()
         //battery is NOT low
         if(buttonEnter.isButtonReleased())flagY = !flagY;
         
-        float sXmms =200;
+        float sXmms = 0;
         float sYmms = 0;
         float sWrads = 0;
-        if(flagY) sXmms = 200;
         
 
-        if(nrf.avalible() && nrf.getadress() == NRFchannel)
-        {   
-            if(nrf.kickFlag())kicker.kick();
+        
+        if (NRFchannel == nrf.getadress()-16)
+        {
+            // Kick
+            if (nrf.kickFlag())
+                kicker.kick();
+            Serial.println(nrf.getsXmms());
+            // Auto kick
+
             sXmms = nrf.getsXmms();
             sYmms = nrf.getsYmms();
             sWrads = nrf.getsWrads();
         }
+        
+        
+        
         sXmms = sXlim.tick(sXmms);
         sYmms = sYlim.tick(sYmms);
-        sWrads += 4*yawInt.tick(sWrads +imu.getYaw());
+        sWrads += 8*yawInt.tick(sWrads +imu.getYaw());
         motor1.setSpeed(calcMototVel(1,sXmms,sYmms,sWrads));
         motor2.setSpeed(calcMototVel(2,sXmms,sYmms,sWrads));
         motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
@@ -169,7 +178,6 @@ void loop()
     if(!initSuccess && millis()%1000<=500)digitalWrite(LED_GREEN,1);
     updOUT();
     digitalWrite(LED_BLUE,ballSensor.isBallIn());
-    Serial.println(imu.getYaw());
 
 
    
