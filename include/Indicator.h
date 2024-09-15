@@ -57,16 +57,6 @@ public:
                 state[i] = 0;
         }
     }
-    void drawDot()
-    {
-        for (int i = 0; i < sizeof(pins) - 1; i++)
-        {
-            if (i == 7)
-                state[i] = 1;
-            else
-                state[i] = 0;
-        }
-    }
     void drawL()
     {
         for (int i = 0; i < sizeof(pins) - 1; i++)
@@ -106,6 +96,14 @@ public:
             else
                 state[i] = 0;
         }
+    }
+    void drawDot()
+    {
+        state[7] = 1;
+    }
+    void clearDot()
+    {
+        state[7] = 0;
     }
     void drawNumber(uint8_t N)
     {

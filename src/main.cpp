@@ -111,20 +111,22 @@ RateLimiter sYlim(TS_S, 400000);
 bool flagY = false;
 float pitch = 0;
 float roll = 0;
+bool autoKick = 0;
 void loop()
 {
     // t
+
     while (micros() < lastUpdate + TS_MCS);
     lastUpdate = micros();
     // s
     nrf.setChannel(NRFchannel);
     updIN();
-    Serial.println(imu.getPitch());
     pitch = pitchInt.tick(imu.getPitch());
     roll = rollInt.tick(imu.getRoll());
-    Serial.println(imu.getRoll());
-    Serial.println(roll);
+    Serial.println(autoKick);
     //p
+    
+
     if(buttonPlus.isButtonReleased())
     {
         NRFchannel++;
@@ -135,7 +137,10 @@ void loop()
         NRFchannel--;
         EEPROM.write(0,NRFchannel);
     }
-    
+    if(nrf.avalible())
+        digitalWrite(LED_GREEN,1);
+    else 
+        digitalWrite(LED_GREEN,1);
     indicator.drawNumber(NRFchannel);
 
     if(voltMeter.getVoltage()<9.6)
@@ -163,16 +168,24 @@ void loop()
         {
             // Kick
             if (nrf.kickFlag())
-                kicker.kick();
-            // Auto kick
+            {
 
+                indicator.drawDash();
+                kicker.kick();
+            }
+            // Auto kick
+            autoKick = nrf.autoKickFlag();
             sXmms = nrf.getsXmms();
             sYmms = nrf.getsYmms();
             sWrads = nrf.getsWrads();
+            nrf.resetUpdate();
         }
         
-        
-        
+        if(ballSensor.isBallIn() && autoKick)
+        {
+            kicker.kick();
+            indicator.drawDash();
+        }
         sXmms = sXlim.tick(sXmms);
         sYmms = sYlim.tick(sYmms);
         sWrads += 8*yawInt.tick(sWrads +imu.getYaw());
@@ -187,6 +200,10 @@ void loop()
         motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
     }
     //a
+    if(autoKick)
+        indicator.drawDot();
+    else
+        indicator.clearDot();
     digitalWrite(LED_GREEN,0);
     if(!initSuccess && millis()%1000<=500)digitalWrite(LED_GREEN,1);
     updOUT();

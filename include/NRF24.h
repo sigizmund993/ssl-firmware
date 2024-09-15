@@ -90,4 +90,8 @@ class NRF : public Updatable
   {
     return flags & (0x01 << 6);
   }
+  bool autoKickFlag()
+  {
+    return flags & (0x01 << 4);
+  }
 };

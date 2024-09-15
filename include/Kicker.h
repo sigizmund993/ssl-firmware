@@ -20,8 +20,10 @@ public:
     }
     ERROR_TYPE update() override
     {   
+
         if(doKick)
         {
+            
             if(millis() < lastKickTime + kickCD)
             {
                 doKick = 0;
