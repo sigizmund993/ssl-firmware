@@ -24,7 +24,14 @@ public:
     { 
         return gyr.z; 
     }
-
+    float getPitch() 
+    { 
+        return gyr.x; 
+    }
+    float getRoll() 
+    { 
+        return gyr.y; 
+    }
 protected:
     MPU9250_WE mpu;
     xyzFloat gyr;

@@ -114,7 +114,7 @@ void loop()
     // s
     nrf.setChannel(NRFchannel);
     updIN();
-    
+    Serial.println(imu.getPitch());
     
     //p
     if(buttonPlus.isButtonReleased())
@@ -143,22 +143,17 @@ void loop()
     else
     {
         //battery is NOT low
-        if(buttonEnter.isButtonReleased())flagY = !flagY;
+        if(buttonEnter.isButtonReleased())kicker.kick();
         
         float sXmms = 0;
         float sYmms = 0;
         float sWrads = 0;
         
 
-        
-        if (NRFchannel == nrf.getadress()-16)
-        {
-            // Kick
-            if (nrf.kickFlag())
-                kicker.kick();
-            Serial.println(nrf.getsXmms());
-            // Auto kick
 
+        if(nrf.avalible() && nrf.getadress() == NRFchannel-16)
+        {   
+            if(nrf.kickFlag())kicker.kick();
             sXmms = nrf.getsXmms();
             sYmms = nrf.getsYmms();
             sWrads = nrf.getsWrads();
