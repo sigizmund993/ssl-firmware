@@ -159,9 +159,13 @@ void loop()
         
 
 
-        if(nrf.avalible() && nrf.getadress() == NRFchannel-16)
-        {   
-            if(nrf.kickFlag())kicker.kick();
+        if (NRFchannel == nrf.getadress()-16)
+        {
+            // Kick
+            if (nrf.kickFlag())
+                kicker.kick();
+            // Auto kick
+
             sXmms = nrf.getsXmms();
             sYmms = nrf.getsYmms();
             sWrads = nrf.getsWrads();

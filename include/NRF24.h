@@ -7,7 +7,7 @@
 #include "Errors.h"
 #include "Updatable.h"
 #define NRF2MMS 10.0
-#define NRF2RADS 0.04
+#define NRF2RADS 0.08
 class NRF : public Updatable
 {
   private:
