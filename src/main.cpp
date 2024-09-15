@@ -30,6 +30,7 @@ Indicator indicator(INDICATOR_A,INDICATOR_B,INDICATOR_C,INDICATOR_D,INDICATOR_E,
 VoltageMeter voltMeter(BATTERY_VOLTAGE,5 * 2.5 / 1024.0,12.4);
 BallSensor ballSensor(BALL_SENSOR,20);
 NRF nrf (NRF_CHIP_ENABLE,NRF_CHIP_SELECT);
+
 float calcMototVel(int motorN,float sXmms,float sYmms,float sWrads)
 {
     sXmms = constrain(sXmms,-1500,1500);
@@ -103,9 +104,13 @@ void setup()
 
 uint32_t lastUpdate = 0;
 Integrator yawInt(TS_S);
+Integrator pitchInt(TS_S);
+Integrator rollInt(TS_S);
 RateLimiter sXlim(TS_S, 400000);
 RateLimiter sYlim(TS_S, 400000);
 bool flagY = false;
+float pitch = 0;
+float roll = 0;
 void loop()
 {
     // t
@@ -115,7 +120,10 @@ void loop()
     nrf.setChannel(NRFchannel);
     updIN();
     Serial.println(imu.getPitch());
-    
+    pitch = pitchInt.tick(imu.getPitch());
+    roll = rollInt.tick(imu.getRoll());
+    Serial.println(imu.getRoll());
+    Serial.println(roll);
     //p
     if(buttonPlus.isButtonReleased())
     {
@@ -164,6 +172,12 @@ void loop()
         sXmms = sXlim.tick(sXmms);
         sYmms = sYlim.tick(sYmms);
         sWrads += 8*yawInt.tick(sWrads +imu.getYaw());
+        if(abs(pitch)>1 || abs(roll) > 1)
+        {
+            sXmms = 0;
+            sYmms = 0;
+            sWrads = 0;
+        }
         motor1.setSpeed(calcMototVel(1,sXmms,sYmms,sWrads));
         motor2.setSpeed(calcMototVel(2,sXmms,sYmms,sWrads));
         motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
