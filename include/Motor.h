@@ -75,7 +75,10 @@ public:
 
         alpha += cntInc / p2r * M_PI * 2;
         speedEnc = spdFilt.tick(alpha);
-        applyVoltage(speedTgt * radS2volt + piReg.tick(speedTgt-speedEnc));
+        float u = speedTgt * radS2volt + piReg.tick(speedTgt-speedEnc);
+        Serial.print("applying voltage  ");
+        Serial.println();
+        applyVoltage(u);
         
         alphaPrev = alpha;
         return NO_ERRORS;
