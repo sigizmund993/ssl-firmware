@@ -22,10 +22,73 @@ Button buttonMinus(BUTTON_CHANEL_MINUS);
 Button buttonEnter(BUTTON_ENTER);
 Kicker kicker(KICKER,50,2000);
 IMU imu(IMU_CHIP_SELECT);
-Motor motor1(MOTOR1_IN2, MOTOR1_IN1, MOTOR1_ENCB_PIN, MOTOR_MAX_SPEED, MOTOR_MAX_SPEED, VOLTS_PER_RAD_S, PPR, TS_S, 0.7, 1000);
-Motor motor2(MOTOR2_IN2, MOTOR2_IN1, MOTOR2_ENCB_PIN, MOTOR_MAX_SPEED, MOTOR_MAX_SPEED, VOLTS_PER_RAD_S, PPR, TS_S, 0.7, 1000);
-Motor motor3(MOTOR3_IN2, MOTOR3_IN1, MOTOR3_ENCB_PIN, MOTOR_MAX_SPEED, MOTOR_MAX_SPEED, VOLTS_PER_RAD_S, PPR, TS_S, 0.7, 1000);
-Motor mot(1,1,1,1,1,1,1,11,1,1);
+///
+MotorConnectionParams mconnp1 =
+{
+    .IN1 =      MOTOR1_IN1,
+    .IN2 =      MOTOR1_IN2,
+    .ENCA_PIN = MOTOR1_ENCA_PIN,
+    .ENCA_CH =  MOTOR1_ENCA_CH,
+    .ENCB_PIN = MOTOR1_ENCB_PIN,
+    .ENCB_CH =  MOTOR1_ENCB_CH,
+    .ENC_PPR =  48,
+    .i =        29,
+    .ke =       0.185,
+    .ENC_PORT = &PINE,
+    .ENC_MASK = 0b00110000,
+    .ENC_SHIFT= 4,
+    .ENC_DIR =  1,
+};
+MotorConnectionParams mconnp2 =
+{
+    .IN1 =      MOTOR2_IN1,
+    .IN2 =      MOTOR2_IN2,
+    .ENCA_PIN = MOTOR2_ENCA_PIN,
+    .ENCA_CH =  MOTOR2_ENCA_CH,
+    .ENCB_PIN = MOTOR2_ENCB_PIN,
+    .ENCB_CH =  MOTOR2_ENCB_CH,
+    .ENC_PPR =  48,
+    .i =        29,
+    .ke =       0.185,
+    .ENC_PORT = &PIND,
+    .ENC_MASK = 0b00001100,
+    .ENC_SHIFT= 2,
+    .ENC_DIR =  -1,
+};
+MotorConnectionParams mconnp3 =
+{
+    .IN1 =      MOTOR3_IN1,
+    .IN2 =      MOTOR3_IN2,
+    .ENCA_PIN = MOTOR3_ENCA_PIN,
+    .ENCA_CH =  MOTOR3_ENCA_CH,
+    .ENCB_PIN = MOTOR3_ENCB_PIN,
+    .ENCB_CH =  MOTOR3_ENCB_CH,
+    .ENC_PPR =  48,
+    .i =        29,
+    .ke =       0.185,
+    .ENC_PORT = &PIND,
+    .ENC_MASK = 0b00000011,
+    .ENC_SHIFT= 0,
+    .ENC_DIR =  -1,
+};
+
+MotorControllerParams mctrlp = 
+{
+    .maxU = 12.0,
+    .moveU = 2,
+    .maxSpeed = 30.0,
+    .maxAccel = 9999,
+    .Ts = TS_S,
+    .kp = ((0.185/(2.0*((float)6000 * 0.000001)))*0.030),
+    .ki = (0.185/(2.0*((float)6000 * 0.000001))),
+    .speedFilterT = 2*TS_S,
+    .maxUi = 9999
+};
+
+Motor motor1(&mconnp1, &mctrlp);
+Motor motor2(&mconnp2, &mctrlp);
+Motor motor3(&mconnp3, &mctrlp);
+///
 Indicator indicator(INDICATOR_A,INDICATOR_B,INDICATOR_C,INDICATOR_D,INDICATOR_E,INDICATOR_F,INDICATOR_G,INDICATOR_DOT);
 VoltageMeter voltMeter(BATTERY_VOLTAGE,5 * 2.5 / 1024.0,12.4);
 BallSensor ballSensor(BALL_SENSOR,20);
@@ -92,11 +155,11 @@ void setup()
     {
     NRFchannel = EEPROM.read(0);
     attachInterrupt(MOTOR1_ENCA_CH, []()
-                    { motor1.handler(); }, RISING);
+                    { motor1.interruptHandler(); }, RISING);
     attachInterrupt(MOTOR2_ENCA_CH, []()
-                    { motor2.handler(); }, RISING);
+                    { motor2.interruptHandler(); }, RISING);
     attachInterrupt(MOTOR3_ENCA_CH, []()
-                    { motor3.handler(); }, RISING);
+                    { motor3.interruptHandler(); }, RISING);
     Serial.begin(115200);
     initSuccess = true;
     }
@@ -195,6 +258,10 @@ void loop()
             sYmms = 0;
             sWrads = 0;
         }
+        Serial.println(calcMototVel(1,sXmms,sYmms,sWrads));
+        Serial.println(calcMototVel(2,sXmms,sYmms,sWrads));
+        Serial.println(calcMototVel(3,sXmms,sYmms,sWrads));
+
         motor1.setSpeed(calcMototVel(1,sXmms,sYmms,sWrads));
         motor2.setSpeed(calcMototVel(2,sXmms,sYmms,sWrads));
         motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
