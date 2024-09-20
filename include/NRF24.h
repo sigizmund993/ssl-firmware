@@ -4,10 +4,10 @@
 #include "RF24.h"
 
 #include "Arduino.h"
-#include "Errors.h"
+#include "Errors.h"t 
 #include "Updatable.h"
 #define NRF2MMS 10.0
-#define NRF2RADS 0.08
+#define NRF2RADS 0.06
 class NRF : public Updatable
 {
   private:

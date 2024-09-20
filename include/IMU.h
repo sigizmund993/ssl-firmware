@@ -15,6 +15,14 @@ public:
         mpu.init();
         delay(1000);
         mpu.autoOffsets();
+        mpu.enableGyrDLPF();
+        mpu.setGyrDLPF(MPU9250_DLPF_6);
+        mpu.setSampleRateDivider(5);
+        mpu.setGyrRange(MPU9250_GYRO_RANGE_250);
+        mpu.setAccRange(MPU9250_ACC_RANGE_2G);
+        mpu.enableAccDLPF(true);
+        mpu.setAccDLPF(MPU9250_DLPF_6);
+        mpu.setMagOpMode(AK8963_CONT_MODE_100HZ);
         delay(200);
         return NO_ERRORS;
     }

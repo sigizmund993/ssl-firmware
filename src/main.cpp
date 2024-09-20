@@ -11,12 +11,15 @@
 #include "NRF24.h"
 #include "Kicker.h"
 #include "IMU.h"
-#define PPR 320
+#define PPR 320.0
 #define VOLTS_PER_RAD_S 0.84
 #define MOTOR_MAX_VOLTAGE 12.0
-#define MOTOR_MAX_SPEED 30
+#define MOTOR_MAX_SPEED 30.0
 #define TS_S 0.005
 #define TS_MCS 5000
+#define MOTORS_ROBOT_RAD_MM 82.0
+#define ROBOT_MAX_SPEED 1500.0
+#define WHEEL_RAD_MM 23.5
 Button buttonPlus(BUTTON_CHANEL_PLUS);
 Button buttonMinus(BUTTON_CHANEL_MINUS);
 Button buttonEnter(BUTTON_ENTER);
@@ -30,17 +33,17 @@ Indicator indicator(INDICATOR_A,INDICATOR_B,INDICATOR_C,INDICATOR_D,INDICATOR_E,
 VoltageMeter voltMeter(BATTERY_VOLTAGE,5 * 2.5 / 1024.0,12.4);
 BallSensor ballSensor(BALL_SENSOR,20);
 NRF nrf (NRF_CHIP_ENABLE,NRF_CHIP_SELECT);
-
 float calcMototVel(int motorN,float sXmms,float sYmms,float sWrads)
-{
+{   
     sXmms = constrain(sXmms,-1500,1500);
     sYmms = constrain(sYmms,-1500,1500);
+    sWrads = constrain(sWrads,-8,8);
     float globalSpeed = sqrt(sXmms*sXmms + sYmms*sYmms);
     float sWmms = sWrads*90.0;
     float angle = atan2(sXmms,-sYmms);
-    float s1Rad =  (sWmms + sin(angle - 0.33 * M_PI) * globalSpeed)/25.0;
-    float s2Rad =  (sWmms + sin(angle - M_PI) * globalSpeed)/25.0;
-    float s3Rad =  (sWmms + sin(angle + 0.33 * M_PI) * globalSpeed)/25.0;
+    float s1Rad =  (sWmms + sin(angle - 0.33 * M_PI) * globalSpeed)/WHEEL_RAD_MM;
+    float s2Rad =  (sWmms + sin(angle - M_PI) * globalSpeed)/WHEEL_RAD_MM;
+    float s3Rad =  (sWmms + sin(angle + 0.33 * M_PI) * globalSpeed)/WHEEL_RAD_MM;
     
     
     switch (motorN)
@@ -106,8 +109,8 @@ uint32_t lastUpdate = 0;
 Integrator yawInt(TS_S);
 Integrator pitchInt(TS_S);
 Integrator rollInt(TS_S);
-RateLimiter sXlim(TS_S, 400000);
-RateLimiter sYlim(TS_S, 400000);
+RateLimiter sXlim(TS_S, 8000);
+RateLimiter sYlim(TS_S, 8000);
 bool flagY = false;
 float pitch = 0;
 float roll = 0;
@@ -176,8 +179,10 @@ void loop()
             // Auto kick
             autoKick = nrf.autoKickFlag();
             sXmms = nrf.getsXmms();
+            
             sYmms = nrf.getsYmms();
             sWrads = nrf.getsWrads();
+            
             nrf.resetUpdate();
         }
         
@@ -195,6 +200,9 @@ void loop()
             sYmms = 0;
             sWrads = 0;
         }
+
+
+        sWrads = constrain(sWrads,-7,7);
         motor1.setSpeed(calcMototVel(1,sXmms,sYmms,sWrads));
         motor2.setSpeed(calcMototVel(2,sXmms,sYmms,sWrads));
         motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
