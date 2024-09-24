@@ -4,8 +4,9 @@
 #include "RF24.h"
 
 #include "Arduino.h"
-#include "Errors.h"t 
+#include "Errors.h"
 #include "Updatable.h"
+#include "math.h"
 #define NRF2MMS 10.0
 #define NRF2RADS 0.06
 class NRF : public Updatable
@@ -49,7 +50,9 @@ class NRF : public Updatable
       {
         adress = recv[0];
         sX = recv[1];
+        
         sY = recv[2];
+        
         sW = recv[3];
         flags = recv[5];
         isUpdated = 1;
@@ -76,10 +79,24 @@ class NRF : public Updatable
   }
   float getsXmms()
   {
+    if(abs(sX)<15)
+    { 
+      if(sX>0)
+        sX = 17;
+      if(sX<0)
+        sX = -17;
+    }
     return sX * NRF2MMS;
   }
   float getsYmms()
   {
+    if(abs(sY)<15)
+    { 
+      if(sY>0)
+        sY = 17;
+      if(sY<0)
+        sY = -17;
+    }
     return sY * NRF2MMS;
   }
   float getsWrads()

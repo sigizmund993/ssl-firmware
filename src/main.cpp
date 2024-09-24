@@ -126,7 +126,7 @@ void loop()
     updIN();
     pitch = pitchInt.tick(imu.getPitch());
     roll = rollInt.tick(imu.getRoll());
-    Serial.println(autoKick);
+    //Serial.println(autoKick);
     //p
     
 
@@ -203,6 +203,7 @@ void loop()
 
 
         sWrads = constrain(sWrads,-7,7);
+        
         motor1.setSpeed(calcMototVel(1,sXmms,sYmms,sWrads));
         motor2.setSpeed(calcMototVel(2,sXmms,sYmms,sWrads));
         motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
