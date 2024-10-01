@@ -105,7 +105,7 @@ void setup()
     }
 }
 
-uint32_t lastUpdate = 0;
+unsigned long long int lastUpdate = 0;
 Integrator yawInt(TS_S);
 Integrator pitchInt(TS_S);
 Integrator rollInt(TS_S);
@@ -133,11 +133,15 @@ void loop()
     if(buttonPlus.isButtonReleased())
     {
         NRFchannel++;
+        if(NRFchannel >= 10)
+            NRFchannel = 0;
         EEPROM.write(0,NRFchannel);
     }
     if(buttonMinus.isButtonReleased())
     {
         NRFchannel--;
+        if(NRFchannel <= -1)
+            NRFchannel = 9;
         EEPROM.write(0,NRFchannel);
     }
     if(nrf.avalible())
