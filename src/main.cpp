@@ -106,6 +106,7 @@ void setup()
 }
 
 unsigned long long int lastUpdate = 0;
+unsigned long long int lastAutokick = 0;
 Integrator yawInt(TS_S);
 Integrator pitchInt(TS_S);
 Integrator rollInt(TS_S);
@@ -190,10 +191,11 @@ void loop()
             nrf.resetUpdate();
         }
         
-        if(ballSensor.isBallIn() && autoKick)
+        if(ballSensor.isBallIn() && autoKick && millis()-lastAutokick > 1000 )
         {
             kicker.kick();
             indicator.drawDash();
+            lastAutokick = millis();
         }
         sXmms = sXlim.tick(sXmms);
         sYmms = sYlim.tick(sYmms);
