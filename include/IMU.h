@@ -30,15 +30,24 @@ public:
 
     float getYaw() 
     { 
-        return gyr.z; 
+        float x = gyr.z;
+        if(abs(x)<0.01)
+            x = 0;
+        return x; 
     }
     float getPitch() 
     { 
-        return gyr.x; 
+        float x = gyr.x;
+        if(abs(x)<0.01)
+            x = 0;
+        return x;
     }
     float getRoll() 
     { 
-        return gyr.y; 
+        float x = gyr.y;
+        if(abs(x)<0.01)
+            x = 0;
+        return x;
     }
 protected:
     MPU9250_WE mpu;

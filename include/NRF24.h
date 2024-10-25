@@ -11,7 +11,8 @@
 #define NRF2RADS 0.06
 class NRF : public Updatable
 {
-  private:
+private:
+  byte recv[6];
   RF24 rad;
   uint8_t adress;
   int8_t sX;
@@ -21,8 +22,9 @@ class NRF : public Updatable
   bool isRotating;
   bool isUpdated;
   int NRFchannel = 1;
-  public:
-  NRF(uint8_t chipEnable, uint8_t chipSelect) : rad(chipEnable,chipSelect){}
+
+public:
+  NRF(uint8_t chipEnable, uint8_t chipSelect) : rad(chipEnable, chipSelect) {}
   ERROR_TYPE init()
   {
     if (!rad.begin())
@@ -41,38 +43,35 @@ class NRF : public Updatable
 
     rad.setAddressWidth(3);
 
-            byte self_addr[]{0xAB, 0xAD, 0xAF};
-            rad.openReadingPipe(1, self_addr);
-            
-            rad.startListening();
-            rad.powerUp();
+    byte self_addr[]{0xAB, 0xAD, 0xAF};
+    rad.openReadingPipe(1, self_addr);
 
+    rad.startListening();
+    rad.powerUp();
 
     return error;
   }
   ERROR_TYPE update() override
   {
-    while(rad.available())
+    while (rad.available())
     {
-      byte recv[6];
+
       rad.read(&recv, 6);
-      if(recv[0] == NRFchannel+16)
+      if (recv[0] == NRFchannel + 16)
       {
         adress = recv[0];
         sX = recv[1];
-        
+
         sY = recv[2];
-        
+
         sW = recv[3];
         flags = recv[5];
         isUpdated = 1;
-        
       }
-      if(sW == 0)
+      if (sW == 0)
         isRotating = false;
       else
         isRotating = true;
-
     }
     return NO_ERRORS;
   }
@@ -88,28 +87,29 @@ class NRF : public Updatable
   {
     return !isUpdated;
   }
+
   uint8_t getadress()
   {
     return adress;
   }
   float getsXmms()
   {
-    if(abs(sX)<15)
-    { 
-      if(sX>0)
+    if (abs(sX) < 15)
+    {
+      if (sX > 0)
         sX = 17;
-      if(sX<0)
+      if (sX < 0)
         sX = -17;
     }
     return sX * NRF2MMS;
   }
   float getsYmms()
   {
-    if(abs(sY)<15)
-    { 
-      if(sY>0)
+    if (abs(sY) < 15)
+    {
+      if (sY > 0)
         sY = 17;
-      if(sY<0)
+      if (sY < 0)
         sY = -17;
     }
     return sY * NRF2MMS;
@@ -126,6 +126,7 @@ class NRF : public Updatable
   {
     return flags & (0x01 << 4);
   }
+
   bool isW0()
   {
     return isRotating;

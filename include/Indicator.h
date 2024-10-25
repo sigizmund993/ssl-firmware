@@ -3,27 +3,27 @@
 #include "Arduino.h"
 #include "Errors.h"
 #include "Updatable.h"
-//New
-// Segments location:
-//       ----A----
-//       |       |
-//       F       B
-//       |       |
-//       ----G----
-//       |       |
-//       E       C
-//       |       |
-//       ----D----  dot
-//       ----0----
-//       |       |
-//       5       1
-//       |       |
-//       ----6----
-//       |       |
-//       4       2
-//       |       |
-//       ----3----  7
-// A0 B1 C2 D3 E4 F5 G6 Dot7
+// New
+//  Segments location:
+//        ----A----
+//        |       |
+//        F       B
+//        |       |
+//        ----G----
+//        |       |
+//        E       C
+//        |       |
+//        ----D----  dot
+//        ----0----
+//        |       |
+//        5       1
+//        |       |
+//        ----6----
+//        |       |
+//        4       2
+//        |       |
+//        ----3----  7
+//  A0 B1 C2 D3 E4 F5 G6 Dot7
 class Indicator : public Updatable
 {
 public:
@@ -81,7 +81,7 @@ public:
     {
         for (int i = 0; i < sizeof(pins) - 1; i++)
         {
-            if (i == 0||i == 3||i == 4||i == 5||i == 7)
+            if (i == 0 || i == 3 || i == 4 || i == 5 || i == 7)
                 state[i] = 1;
             else
                 state[i] = 0;
@@ -91,7 +91,7 @@ public:
     {
         for (int i = 0; i < sizeof(pins) - 1; i++)
         {
-            if (i == 2||i == 3||i == 7)
+            if (i == 2 || i == 3 || i == 7)
                 state[i] = 0;
             else
                 state[i] = 0;
@@ -107,7 +107,7 @@ public:
     }
     void drawNumber(uint8_t N)
     {
-        
+
         if (N == 0)
         {
             for (int i = 0; i < sizeof(pins) - 1; i++)
@@ -152,7 +152,7 @@ public:
         {
             for (int i = 0; i < sizeof(pins) - 1; i++)
             {
-                if (i == 0 || i == 3 || i == 4||i == 7)
+                if (i == 0 || i == 3 || i == 4 || i == 7)
                     state[i] = 0;
                 else
                     state[i] = 1;
@@ -210,9 +210,11 @@ public:
         }
         if (N > 9)
         {
-            drawH();
+            if (millis() % 1000 < 500)
+                drawNumber((N - N % 10) / 10);
+            else
+                drawNumber(N % 10);
         }
-        
     }
     ERROR_TYPE update() override
     {
