@@ -1,223 +1,80 @@
-#include "Arduino.h"
-#include "BallSensor.h"
-#include "Button.h"
+#include <Arduino.h>
 #include "ConnectionList.h"
-#include "EEPROM.h"
-#include "Indicator.h"
-#include "Motor.h"
-#include "VoltageMeter.h"
-#include <SPI.h>
-#include "RF24.h"
-#include "NRF24.h"
-#include "Kicker.h"
-#include "IMU.h"
-#define PPR 320.0
-#define VOLTS_PER_RAD_S 0.84
+#include "Tau.h"
 #define MOTOR_MAX_VOLTAGE 12.0
-#define MOTOR_MAX_SPEED 30.0
-#define TS_S 0.005
-#define TS_MCS 5000
-#define MOTORS_ROBOT_RAD_MM 82.0
-#define ROBOT_MAX_SPEED 1500.0
+#define MOTOR_MOVE_VOLTAGE 1.5
 #define WHEEL_RAD_MM 23.5
-Button buttonPlus(BUTTON_CHANEL_PLUS);
-Button buttonMinus(BUTTON_CHANEL_MINUS);
-Button buttonEnter(BUTTON_ENTER);
-Kicker kicker(KICKER,50,2000);
-IMU imu(IMU_CHIP_SELECT);
-Motor motor1(MOTOR1_IN2, MOTOR1_IN1, MOTOR1_ENCB_PIN, MOTOR_MAX_SPEED, MOTOR_MAX_SPEED, VOLTS_PER_RAD_S, PPR, TS_S, 0.7, 1000);
-Motor motor2(MOTOR2_IN2, MOTOR2_IN1, MOTOR2_ENCB_PIN, MOTOR_MAX_SPEED, MOTOR_MAX_SPEED, VOLTS_PER_RAD_S, PPR, TS_S, 0.7, 1000);
-Motor motor3(MOTOR3_IN2, MOTOR3_IN1, MOTOR3_ENCB_PIN, MOTOR_MAX_SPEED, MOTOR_MAX_SPEED, VOLTS_PER_RAD_S, PPR, TS_S, 0.7, 1000);
-Motor mot(1,1,1,1,1,1,1,11,1,1);
-Indicator indicator(INDICATOR_A,INDICATOR_B,INDICATOR_C,INDICATOR_D,INDICATOR_E,INDICATOR_F,INDICATOR_G,INDICATOR_DOT);
-VoltageMeter voltMeter(BATTERY_VOLTAGE,5 * 2.5 / 1024.0,12.4);
-BallSensor ballSensor(BALL_SENSOR,20);
-NRF nrf (NRF_CHIP_ENABLE,NRF_CHIP_SELECT);
-float calcMototVel(int motorN,float sXmms,float sYmms,float sWrads)
-{   
-    sXmms = constrain(sXmms,-1500,1500);
-    sYmms = constrain(sYmms,-1500,1500);
-    sWrads = constrain(sWrads,-8,8);
-    float globalSpeed = sqrt(sXmms*sXmms + sYmms*sYmms);
-    float sWmms = sWrads*90.0;
-    float angle = atan2(sXmms,-sYmms);
-    float s1Rad =  (sWmms + sin(angle - 0.33 * M_PI) * globalSpeed)/WHEEL_RAD_MM;
-    float s2Rad =  (sWmms + sin(angle - M_PI) * globalSpeed)/WHEEL_RAD_MM;
-    float s3Rad =  (sWmms + sin(angle + 0.33 * M_PI) * globalSpeed)/WHEEL_RAD_MM;
+#define MOTOR_PPR 320.0
+#define TS_S 0.005
+#define RADS2VOLT 0.84
+// put function declarations here:
+class Motor
+{
+private:
+  int pin1, pin2, encPin;
+  unsigned long long int encCnt, ang;
+  PIreg piReg;
+  float tgtPos;
+public:
+  Motor(int pin1, int pin2, int encPin): piReg(TS_S,0.7,1000,100500)
+  {
     
+    this->pin1 = pin1;
+    this->pin2 = pin2;
+    this->encPin = encPin;
+    pinMode(pin1, OUTPUT);
+    pinMode(pin2, OUTPUT);
+    pinMode(encPin, INPUT);
     
-    switch (motorN)
+  }
+  
+  void applyVoltage(float V)
+  {
+    V = constrain(V, -MOTOR_MAX_VOLTAGE, MOTOR_MAX_VOLTAGE);
+    if (abs(V) <= MOTOR_MOVE_VOLTAGE)
+      V = 0;
+    float pwm = V / MOTOR_MAX_VOLTAGE * 255.0;
+    float pwm1;
+    float pwm2;
+
+    if (pwm > 0)
     {
-    case 1:
-        return s1Rad;
-        break;
-    case 2:
-        return s2Rad;
-        break;
-    case 3:
-        return s3Rad;
-        break;
-    default:
-        return 0;
-        break;
+      pwm1 = 255;
+      pwm2 = 255 - pwm;
     }
-}
-void updIN()
-{
-    buttonEnter.update();
-    buttonMinus.update();
-    buttonPlus.update();
-    imu.update();
-    voltMeter.update();
-    ballSensor.update();
-    nrf.update();
-}
-void updOUT()
-{
-    kicker.update();
-    motor1.update();
-    motor2.update();
-    motor3.update();
-    indicator.update();
-}
-int NRFchannel =0;
-bool initSuccess = false;
+    else
+    {
+      pwm1 = 255;
+      pwm2 = 255 - pwm;
+    }
+    analogWrite(pin1, pwm1);
+    analogWrite(pin2, pwm2);
+  }
+  void handler()
+  {
+    if(digitalRead(encPin))
+      encCnt++;
+    else
+      encCnt--;
+    ang = encCnt/MOTOR_PPR*M_PI*2;
+  }
+  
+  void move(float sRads)
+  {
+    
+    tgtPos += sRads;
+    applyVoltage(piReg.tick(tgtPos-ang)*RADS2VOLT);
+  }
+};
+Motor motor1(MOTOR1_IN1,MOTOR1_IN2,MOTOR1_ENCB_PIN);
 void setup()
 {
-    imu.init();
-    if(nrf.init() == NRF_CONNECTION_ERROR)
-    {
-        
-        indicator.drawC();
-        indicator.update();
-    }
-    else
-    {
-    NRFchannel = EEPROM.read(0);
-    attachInterrupt(MOTOR1_ENCA_CH, []()
-                    { motor1.handler(); }, RISING);
-    attachInterrupt(MOTOR2_ENCA_CH, []()
-                    { motor2.handler(); }, RISING);
-    attachInterrupt(MOTOR3_ENCA_CH, []()
-                    { motor3.handler(); }, RISING);
-    Serial.begin(115200);
-    initSuccess = true;
-    }
+  Serial.begin(115200);
+  attachInterrupt(MOTOR1_ENCA_CH,[](){motor1.handler();},RISING);
+
 }
 
-uint32_t lastUpdate = 0;
-Integrator yawInt(TS_S);
-Integrator pitchInt(TS_S);
-Integrator rollInt(TS_S);
-RateLimiter sXlim(TS_S, 8000);
-RateLimiter sYlim(TS_S, 8000);
-bool flagY = false;
-float pitch = 0;
-float roll = 0;
-bool autoKick = 0;
 void loop()
 {
-    // t
-
-    while (micros() < lastUpdate + TS_MCS);
-    lastUpdate = micros();
-    // s
-    nrf.setChannel(NRFchannel);
-    updIN();
-    pitch = pitchInt.tick(imu.getPitch());
-    roll = rollInt.tick(imu.getRoll());
-    //Serial.println(autoKick);
-    //p
-    
-
-    if(buttonPlus.isButtonReleased())
-    {
-        NRFchannel++;
-        EEPROM.write(0,NRFchannel);
-    }
-    if(buttonMinus.isButtonReleased())
-    {
-        NRFchannel--;
-        EEPROM.write(0,NRFchannel);
-    }
-    if(nrf.avalible())
-        digitalWrite(LED_GREEN,1);
-    else 
-        digitalWrite(LED_GREEN,1);
-    indicator.drawNumber(NRFchannel);
-
-    if(voltMeter.getVoltage()<9.6)
-    {
-        Serial.println("BATTERY CRITICAL");
-        indicator.drawL();
-    }
-    else if(voltMeter.getVoltage()<11.1 && millis()%1000<=500)
-    {
-        Serial.println("BATTERY LOW");
-        indicator.drawL();
-    }
-    else
-    {
-        //battery is NOT low
-        if(buttonEnter.isButtonReleased())kicker.kick();
-        
-        float sXmms = 0;
-        float sYmms = 0;
-        float sWrads = 0;
-        
-
-
-        if (NRFchannel == nrf.getadress()-16)
-        {
-            // Kick
-            if (nrf.kickFlag())
-            {
-
-                indicator.drawDash();
-                kicker.kick();
-            }
-            // Auto kick
-            autoKick = nrf.autoKickFlag();
-            sXmms = nrf.getsXmms();
-            
-            sYmms = nrf.getsYmms();
-            sWrads = nrf.getsWrads();
-            
-            nrf.resetUpdate();
-        }
-        
-        if(ballSensor.isBallIn() && autoKick)
-        {
-            kicker.kick();
-            indicator.drawDash();
-        }
-        sXmms = sXlim.tick(sXmms);
-        sYmms = sYlim.tick(sYmms);
-        sWrads += 8*yawInt.tick(sWrads +imu.getYaw());
-        if(abs(pitch)>1 || abs(roll) > 1)
-        {
-            sXmms = 0;
-            sYmms = 0;
-            sWrads = 0;
-        }
-
-
-        sWrads = constrain(sWrads,-7,7);
-        
-        motor1.setSpeed(calcMototVel(1,sXmms,sYmms,sWrads));
-        motor2.setSpeed(calcMototVel(2,sXmms,sYmms,sWrads));
-        motor3.setSpeed(calcMototVel(3,sXmms,sYmms,sWrads));
-    }
-    //a
-    if(autoKick)
-        indicator.drawDot();
-    else
-        indicator.clearDot();
-    digitalWrite(LED_GREEN,0);
-    if(!initSuccess && millis()%1000<=500)digitalWrite(LED_GREEN,1);
-    updOUT();
-    digitalWrite(LED_BLUE,ballSensor.isBallIn());
-
-
-   
+  motor1.move(M_PI*2);
 }
