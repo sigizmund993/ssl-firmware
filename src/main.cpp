@@ -29,7 +29,7 @@ IMU imu(IMU_CHIP_SELECT);
 Motor motor1(MOTOR1_IN2, MOTOR1_IN1, MOTOR1_ENCB_PIN);
 Motor motor2(MOTOR2_IN2, MOTOR2_IN1, MOTOR2_ENCB_PIN);
 Motor motor3(MOTOR3_IN2, MOTOR3_IN1, MOTOR3_ENCB_PIN);
-Motor mot(1000,1000,1000);
+Motor mot(1000, 1000, 1000);
 Indicator indicator(INDICATOR_A, INDICATOR_B, INDICATOR_C, INDICATOR_D, INDICATOR_E, INDICATOR_F, INDICATOR_G, INDICATOR_DOT);
 VoltageMeter voltMeter(BATTERY_VOLTAGE, 5 * 2.5 / 1024.0, 12.4);
 BallSensor ballSensor(BALL_SENSOR, 20);
@@ -124,7 +124,8 @@ void loop()
 {
     // t
 
-    while (micros() < lastUpdate + TS_MCS);
+    while (micros() < lastUpdate + TS_MCS)
+        ;
     lastUpdate = micros();
     // s
     nrf.setChannel(NRFchannel);
@@ -196,22 +197,23 @@ void loop()
             indicator.drawDash();
             lastAutokick = millis();
         }
-        sXmms = sXlim.tick(sXmms);
-        sYmms = sYlim.tick(sYmms);
-        sWrads += 8 * yawInt.tick(sWrads + imu.getYaw());
-        if(abs(pitch)>1 || abs(roll) > 1)
+        // sXmms = sXlim.tick(sXmms);
+        // sYmms = sYlim.tick(sYmms);
+        sWrads += 7 * yawInt.tick(sWrads + imu.getYaw());
+        if (abs(pitch) > 1 || abs(roll) > 1)
         {
             sXmms = 0;
             sYmms = 0;
             sWrads = 0;
         }
 
-
         sWrads = constrain(sWrads, -7, 7);
-        
+
         motor1.setSpeed(calcMototVel(1, sXmms, sYmms, sWrads));
+        Serial.println(calcMototVel(1, sXmms, sYmms, sWrads));
         motor2.setSpeed(calcMototVel(2, sXmms, sYmms, sWrads));
         motor3.setSpeed(calcMototVel(3, sXmms, sYmms, sWrads));
+
         // analogWrite(MOTOR1_IN1, 255);
         // analogWrite(MOTOR1_IN2, 0);
         // analogWrite(MOTOR2_IN1, 255);
@@ -229,6 +231,6 @@ void loop()
         digitalWrite(LED_GREEN, 1);
     updOUT();
     digitalWrite(LED_BLUE, ballSensor.isBallIn());
-    Serial.println(pitch);
-    Serial.println(roll);
+    // Serial.println(pitch);
+    // Serial.println(roll);
 }

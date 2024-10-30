@@ -4,12 +4,11 @@
 #include "Errors.h"
 #include "Updatable.h"
 #include "Tau.h"
-#define PPR 320.0
+#define PPR 210.0*2
 #define VOLTS_PER_RAD_S 0.84
 #define MOTOR_MAX_VOLTAGE 12.0
 #define TS_S 0.005
-
-#define MOTOR_MOVE_VOLTAGE 1.5
+#define MOTOR_MOVE_VOLTAGE 0.1
 class Motor : public Updatable
 {
 private:
@@ -22,7 +21,7 @@ private:
 
 public:
     Motor(int pin1, int pin2, int encPin)
-        : piReg(TS_S, 0.7, 1000, MOTOR_MAX_VOLTAGE)
+        : piReg(TS_S,0.7,1,MOTOR_MAX_VOLTAGE)
     {
         this->pin1 = pin1;
         this->pin2 = pin2;
@@ -59,14 +58,17 @@ public:
     }
     ERROR_TYPE update() override
     {
-        angTgt += speedR;
-        float u = piReg.tick(angTgt - ang)*VOLTS_PER_RAD_S;
-        Serial.println(u);
+        angTgt += speedR*TS_S;
+        // Serial.println(angTgt);
+        // Serial.println(ang);
+        float u = angTgt - ang;
+        u*=20;
         applyVoltage(u);
         return NO_ERRORS;
+
     }
     void setSpeed(float speed)
     {
-        speedR = speed;
+        speedR = speed;//RAD/S
     }
 };
