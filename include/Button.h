@@ -25,6 +25,10 @@ public:
         prevstate = state;
         return NO_ERRORS;
     }
+    bool getState()
+    {
+        return state;
+    }
     bool isButtonPressed()
     {
         return isPressed;

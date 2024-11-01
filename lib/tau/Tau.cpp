@@ -42,7 +42,6 @@ float Integrator::tick(float in)
 }
 
 /*!v First order differetiator */
-
 FOD::FOD(float Ts, float T, bool is_angle) : TauBase(Ts), I(Ts)
 {
     this->T = T;

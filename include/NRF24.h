@@ -94,24 +94,24 @@ public:
   }
   float getsXmms()
   {
-    if (abs(sX) < 15)
-    {
-      if (sX > 0)
-        sX = 17;
-      if (sX < 0)
-        sX = -17;
-    }
+    // if (abs(sX) < 15)
+    // {
+    //   if (sX > 0)
+    //     sX = 17;
+    //   if (sX < 0)
+    //     sX = -17;
+    // }
     return sX * NRF2MMS;
   }
   float getsYmms()
   {
-    if (abs(sY) < 15)
-    {
-      if (sY > 0)
-        sY = 17;
-      if (sY < 0)
-        sY = -17;
-    }
+    // if (abs(sY) < 15)
+    // {
+    //   if (sY > 0)
+    //     sY = 17;
+    //   if (sY < 0)
+    //     sY = -17;
+    // }
     return sY * NRF2MMS;
   }
   float getsWrads()

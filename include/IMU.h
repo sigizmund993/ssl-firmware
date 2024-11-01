@@ -38,14 +38,14 @@ public:
     float getPitch() 
     { 
         float x = gyr.x;
-        if(abs(x)<0.01)
+        if(abs(x)<0.02)
             x = 0;
         return x;
     }
     float getRoll() 
     { 
         float x = gyr.y;
-        if(abs(x)<0.01)
+        if(abs(x)<0.02)
             x = 0;
         return x;
     }

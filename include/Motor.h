@@ -62,7 +62,7 @@ public:
         // Serial.println(angTgt);
         // Serial.println(ang);
         float u = angTgt - ang;
-        u*=20;
+        u*=10;
         applyVoltage(u);
         return NO_ERRORS;
 
