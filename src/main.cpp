@@ -98,7 +98,6 @@ void setup()
 unsigned long long int lastUpdate = 0;
 unsigned long long int lastAutokick = 0;
 unsigned long long int turnOnAutokickTimer = 0;
-bool autokickCntStart = 0;
 int autokickCnt =0;
 Integrator yawInt(TS_S);
 Integrator pitchInt(TS_S);
@@ -187,12 +186,11 @@ void loop()
         }
         if(millis()-turnOnAutokickTimer<=10000 && millis()>10000)
             autoKick = 1;
-        if (autoKick && millis() - lastAutokick > 1000)
+        if (autoKick && millis() - lastAutokick > 1000 && ballSensor.isBallIn())
         {
             kicker.kick();
             indicator.drawDash();
             lastAutokick = millis();
-            autokickCntStart = 0;
         }
         
         // sXmms = sXlim.tick(sXmms);
