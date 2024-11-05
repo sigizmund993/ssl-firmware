@@ -8,7 +8,7 @@
 #define VOLTS_PER_RAD_S 0.84
 #define MOTOR_MAX_VOLTAGE 12.0
 #define TS_S 0.005
-#define MOTOR_MOVE_VOLTAGE 0.1
+#define MOTOR_MOVE_VOLTAGE 1
 class Motor : public Updatable
 {
 private:
@@ -16,7 +16,7 @@ private:
     float pwm1, pwm2;
     int encPin;
     volatile long int encCounter;
-    float ang, angTgt, speedR;
+    float ang, angTgt, speedR, prevAng;
     PIreg piReg;
 
 public:
@@ -64,8 +64,10 @@ public:
         float u = angTgt - ang;
         u*=10;
         applyVoltage(u);
+        Serial.println((ang-prevAng)/TS_S);
+        prevAng = ang;
         return NO_ERRORS;
-
+        
     }
     void setSpeed(float speed)
     {

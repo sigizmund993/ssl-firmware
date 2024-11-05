@@ -11,15 +11,10 @@
 #include "NRF24.h"
 #include "Kicker.h"
 #include "IMU.h"
-#define GEAR_RATIO 1.0
-#define PPR 320.0
-#define VOLTS_PER_RAD_S 0.84
-#define MOTOR_MAX_VOLTAGE 12.0
-#define MOTOR_MAX_SPEED 30.0
 #define TS_S 0.005
 #define TS_MCS TS_S*1000*1000
 #define MOTORS_ROBOT_RAD_MM 82.0
-#define ROBOT_MAX_SPEED 1500.0
+#define ROBOT_MAX_SPEED 3200.0
 #define WHEEL_RAD_MM 23.5
 #define IS_FICHA_USED 1
 Button buttonPlus(BUTTON_CHANEL_PLUS);
@@ -100,10 +95,8 @@ unsigned long long int lastAutokick = 0;
 unsigned long long int turnOnAutokickTimer = 0;
 int autokickCnt =0;
 Integrator yawInt(TS_S);
-Integrator pitchInt(TS_S);
-Integrator rollInt(TS_S);
-RateLimiter sXlim(TS_S, 8000);
-RateLimiter sYlim(TS_S, 8000);
+RateLimiter sXlim(TS_S, 10000000);
+RateLimiter sYlim(TS_S, 10000000);
 bool flagY = false;
 float pitch = 0;
 float roll = 0;
@@ -122,8 +115,6 @@ void loop()
     // s
     nrf.setChannel(NRFchannel);
     updIN();
-    pitch = pitchInt.tick(imu.getPitch());
-    roll = rollInt.tick(imu.getRoll());
     // Serial.println(autoKick);
     // p
 
@@ -193,10 +184,10 @@ void loop()
             lastAutokick = millis();
         }
         
-        // sXmms = sXlim.tick(sXmms);
-        // sYmms = sYlim.tick(sYmms);
+        sXmms = sXlim.tick(sXmms);
+        sYmms = sYlim.tick(sYmms);
         sWrads += 9 * yawInt.tick(sWrads + imu.getYaw());
-        if (abs(pitch) > 1 || abs(roll) > 1 && IS_FICHA_USED)
+        if (! imu.flat() && IS_FICHA_USED)
         {
             sXmms = 0;
             sYmms = 0;

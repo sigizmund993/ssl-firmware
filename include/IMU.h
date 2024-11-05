@@ -35,28 +35,20 @@ public:
             x = 0;
         return x; 
     }
-    float getPitch() 
-    { 
-        float x = gyr.x;
-        if(abs(x)<0.02)
-            x = 0;
-        return x;
-    }
-    float getRoll() 
-    { 
-        float x = gyr.y;
-        if(abs(x)<0.02)
-            x = 0;
-        return x;
+    bool flat()
+    {
+        return orientation == MPU9250_FLAT;
     }
 protected:
     MPU9250_WE mpu;
     xyzFloat gyr;
-    
+    MPU9250_orientation orientation;
 };
 
 ERROR_TYPE IMU::update()
 {
   gyr = mpu.getGyrValues() * M_PI/180;
+  orientation = mpu.getOrientation();
+  Serial.println(orientation);
   return NO_ERRORS;
 }
