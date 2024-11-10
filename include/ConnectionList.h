@@ -2,6 +2,8 @@
 
 #include "Arduino.h"
 
+//------------------------BUZZER---------------------------
+#define BUZZER 36
 //-------------------------LEDS----------------------------
 #define LED_GREEN 23
 #define LED_BLUE 22

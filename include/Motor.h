@@ -64,7 +64,7 @@ public:
         float u = angTgt - ang;
         u*=10;
         applyVoltage(u);
-        Serial.println((ang-prevAng)/TS_S);
+        // Serial.println((ang-prevAng)/TS_S);
         prevAng = ang;
         return NO_ERRORS;
         

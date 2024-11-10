@@ -11,12 +11,13 @@
 #include "NRF24.h"
 #include "Kicker.h"
 #include "IMU.h"
+#include "Buzzer.h"
 #define TS_S 0.005
 #define TS_MCS TS_S*1000*1000
 #define MOTORS_ROBOT_RAD_MM 82.0
 #define ROBOT_MAX_SPEED 3200.0
 #define WHEEL_RAD_MM 23.5
-#define IS_FICHA_USED 1
+#define IS_FICHA_USED 0
 Button buttonPlus(BUTTON_CHANEL_PLUS);
 Button buttonMinus(BUTTON_CHANEL_MINUS);
 Button buttonEnter(BUTTON_ENTER);
@@ -30,6 +31,7 @@ Indicator indicator(INDICATOR_A, INDICATOR_B, INDICATOR_C, INDICATOR_D, INDICATO
 VoltageMeter voltMeter(BATTERY_VOLTAGE, 5 * 2.5 / 1024.0, 12.4);
 BallSensor ballSensor(BALL_SENSOR, 20);
 NRF nrf(NRF_CHIP_ENABLE, NRF_CHIP_SELECT);
+Buzzer buzzer(BUZZER);
 void calcMototVel(float sXmms, float sYmms, float sWrads)
 {
     // float scaler = 1;
@@ -46,6 +48,7 @@ void calcMototVel(float sXmms, float sYmms, float sWrads)
     motor1.setSpeed(s1Rad);
     motor2.setSpeed(s2Rad);
     motor3.setSpeed(s3Rad);
+    Serial.println(s1Rad);
 }
 void updIN()
 {
@@ -64,12 +67,13 @@ void updOUT()
     motor2.update();
     motor3.update();
     indicator.update();
+    buzzer.update();
 }
 int NRFchannel = 0;
 bool initSuccess = false;
 void setup()
 {
-    imu.init();
+    buzzer.playMelody();
     if (nrf.init() == NRF_CONNECTION_ERROR)
     {
 
@@ -108,7 +112,7 @@ float sWrads = 0;
 void loop()
 {
     // t
-
+    
     while (micros() < lastUpdate + TS_MCS)
         ;
     lastUpdate = micros();
@@ -187,7 +191,7 @@ void loop()
         sXmms = sXlim.tick(sXmms);
         sYmms = sYlim.tick(sYmms);
         sWrads += 9 * yawInt.tick(sWrads + imu.getYaw());
-        if (! imu.flat() && IS_FICHA_USED)
+        if (!imu.flat() && IS_FICHA_USED)
         {
             sXmms = 0;
             sYmms = 0;
@@ -207,7 +211,8 @@ void loop()
     if (!initSuccess && millis() % 1000 <= 500)
         digitalWrite(LED_GREEN, 1);
     updOUT();
+
     digitalWrite(LED_BLUE, ballSensor.isBallIn());
-    // Serial.println(pitch);
-    // Serial.println(roll);
+    Serial.println(imu.getYaw());
+
 }
