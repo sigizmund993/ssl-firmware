@@ -16,7 +16,10 @@
 #define MOTORS_ROBOT_RAD_MM 82.0
 #define ROBOT_MAX_SPEED 3200.0
 #define WHEEL_RAD_MM 23.5
-#define IS_FICHA_USED 1
+#define NORMAL_KICK_ENABLED 0
+#define IS_FICHA_USED 0
+#define NRF_FREQUENCY 50
+#define AUTOKICK_HOLD 1500
 Button buttonPlus(BUTTON_CHANEL_PLUS);
 Button buttonMinus(BUTTON_CHANEL_MINUS);
 Button buttonEnter(BUTTON_ENTER);
@@ -29,7 +32,7 @@ Motor mot(1000, 1000, 1000);
 Indicator indicator(INDICATOR_A, INDICATOR_B, INDICATOR_C, INDICATOR_D, INDICATOR_E, INDICATOR_F, INDICATOR_G, INDICATOR_DOT);
 VoltageMeter voltMeter(BATTERY_VOLTAGE, 5 * 2.5 / 1024.0, 12.4);
 BallSensor ballSensor(BALL_SENSOR, 20);
-NRF nrf(NRF_CHIP_ENABLE, NRF_CHIP_SELECT);
+NRF nrf(NRF_FREQUENCY,NRF_CHIP_ENABLE, NRF_CHIP_SELECT);
 void calcMototVel(float sXmms, float sYmms, float sWrads)
 {
     // float scaler = 1;
@@ -88,13 +91,14 @@ void setup()
         Serial.begin(115200);
         initSuccess = true;
     }
+    pinMode(36,OUTPUT);
 }
 
 unsigned long long int lastUpdate = 0;
 unsigned long long int lastAutokick = 0;
 unsigned long long int turnOnAutokickTimer = 0;
 int autokickCnt =0;
-Integrator yawInt(TS_S);
+// Integrator yawInt(TS_S);
 RateLimiter sXlim(TS_S, 10000000);
 RateLimiter sYlim(TS_S, 10000000);
 bool flagY = false;
@@ -105,10 +109,11 @@ bool autoKick = 0;
 float sXmms = 0;
 float sYmms = 0;
 float sWrads = 0;
+double yaw = 0;
 void loop()
 {
     // t
-
+    digitalWrite(36,0);
     while (micros() < lastUpdate + TS_MCS)
         ;
     lastUpdate = micros();
@@ -164,10 +169,12 @@ void loop()
             {
 
                 indicator.drawDash();
-                kicker.kick();
+                if(NORMAL_KICK_ENABLED)
+                    kicker.kick();
             }
             // Auto kick
-            autoKick = nrf.autoKickFlag();
+            if(nrf.autoKickFlag())
+                turnOnAutokickTimer = millis();
             sXmms = nrf.getsXmms();
 
             sYmms = nrf.getsYmms();
@@ -175,8 +182,11 @@ void loop()
 
             nrf.resetUpdate();
         }
-        if(millis()-turnOnAutokickTimer<=10000 && millis()>10000)
+        
+        if(millis()-turnOnAutokickTimer<=AUTOKICK_HOLD && millis()>AUTOKICK_HOLD)
             autoKick = 1;
+        else
+            autoKick = 0;
         if (autoKick && millis() - lastAutokick > 1000 && ballSensor.isBallIn())
         {
             kicker.kick();
@@ -184,9 +194,10 @@ void loop()
             lastAutokick = millis();
         }
         
-        sXmms = sXlim.tick(sXmms);
-        sYmms = sYlim.tick(sYmms);
-        sWrads += 9 * yawInt.tick(sWrads + imu.getYaw());
+        // sXmms = sXlim.tick(sXmms);
+        // sYmms = sYlim.tick(sYmms);
+        yaw += (sWrads+imu.getYaw())*TS_S;
+        sWrads += 9 * yaw;
         if (! imu.flat() && IS_FICHA_USED)
         {
             sXmms = 0;
@@ -195,7 +206,8 @@ void loop()
         }
 
         // sWrads = constrain(sWrads, -7, 7);
-
+        // sXmms = 1000;
+        // sWrads = 2;
         calcMototVel(sXmms, sYmms, sWrads);
     }
     // a
@@ -208,6 +220,7 @@ void loop()
         digitalWrite(LED_GREEN, 1);
     updOUT();
     digitalWrite(LED_BLUE, ballSensor.isBallIn());
+    
     // Serial.println(pitch);
     // Serial.println(roll);
 }

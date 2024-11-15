@@ -12,7 +12,7 @@
 class NRF : public Updatable
 {
 private:
-  byte recv[6];
+  byte recv[7];
   RF24 rad;
   uint8_t adress;
   int8_t sX;
@@ -22,9 +22,12 @@ private:
   bool isRotating;
   bool isUpdated;
   int NRFchannel = 1;
+  int frequency;
 
 public:
-  NRF(uint8_t chipEnable, uint8_t chipSelect) : rad(chipEnable, chipSelect) {}
+  NRF(int setFreq, uint8_t chipEnable, uint8_t chipSelect) : rad(chipEnable, chipSelect) {
+    this->frequency = setFreq;
+  }
   ERROR_TYPE init()
   {
     if (!rad.begin())
@@ -32,7 +35,7 @@ public:
 
     ERROR_TYPE error = NO_ERRORS;
 
-    rad.setChannel(0x4c); // Указываем канал передачи данных (от 0 до 125), 27 - значит приём данных осуществляется на частоте 2,427 ГГц.
+    rad.setChannel(frequency); // Указываем канал передачи данных (от 0 до 125), 27 - значит приём данных осуществляется на частоте 2,427 ГГц.
     if (!rad.setDataRate(RF24_2MBPS))
       error |= NRF_DATA_RATE_ERROR; // Указываем скорость передачи данных (RF24_250KBPS, RF24_1MBPS, RF24_2MBPS), RF24_1MBPS - 1Мбит/сек.
     rad.setPALevel(RF24_PA_MAX);
@@ -53,15 +56,22 @@ public:
   }
   ERROR_TYPE update() override
   {
-    while (rad.available())
+    for(int i = 0;i < 7;i++)
+    {
+      recv[i] = byte(0);
+    }
+    
+    while(rad.available())
     {
 
-      rad.read(&recv, 6);
-      if (recv[0] == NRFchannel + 16)
+      rad.read(&recv, 7);
+      
+      
+      if (recv[0] == NRFchannel + 16&&recv[6] == 52)
       {
         adress = recv[0];
         sX = recv[1];
-
+        
         sY = recv[2];
 
         sW = recv[3];
@@ -73,6 +83,7 @@ public:
       else
         isRotating = true;
     }
+    rad.flush_rx();
     return NO_ERRORS;
   }
   void setChannel(int ch)

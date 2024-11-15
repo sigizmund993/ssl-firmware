@@ -49,6 +49,6 @@ ERROR_TYPE IMU::update()
 {
   gyr = mpu.getGyrValues() * M_PI/180;
   orientation = mpu.getOrientation();
-  Serial.println(orientation);
+  
   return NO_ERRORS;
 }

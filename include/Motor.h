@@ -16,7 +16,7 @@ private:
     float pwm1, pwm2;
     int encPin;
     volatile long int encCounter;
-    float ang, angTgt, speedR, prevAng;
+    volatile double ang, angTgt, speedR, prevAng;
     PIreg piReg;
 
 public:
@@ -37,6 +37,7 @@ public:
         else
             encCounter--;
         ang = encCounter / PPR * M_PI;
+        
     }
     void applyVoltage(float u)
     {
@@ -59,12 +60,16 @@ public:
     ERROR_TYPE update() override
     {
         angTgt += speedR*TS_S;
+        
         // Serial.println(angTgt);
-        // Serial.println(ang);
+        Serial.println(ang);
+        Serial.println(encCounter);
+        Serial.println(millis());
         float u = angTgt - ang;
+
         u*=10;
         applyVoltage(u);
-        Serial.println((ang-prevAng)/TS_S);
+        
         prevAng = ang;
         return NO_ERRORS;
         

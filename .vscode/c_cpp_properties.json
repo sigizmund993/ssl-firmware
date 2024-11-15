@@ -19,6 +19,7 @@
                 "C:/Users/TBG/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                 "C:/Users/TBG/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "C:/Users/TBG/.platformio/packages/framework-arduino-avr/variants/mega",
+                "c:/Users/TBG/Documents/PlatformIO/Projects/ssl-firmware/lib/WatchDog",
                 "C:/Users/TBG/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "C:/Users/TBG/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
                 ""
@@ -37,6 +38,7 @@
                     "C:/Users/TBG/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                     "C:/Users/TBG/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "C:/Users/TBG/.platformio/packages/framework-arduino-avr/variants/mega",
+                    "c:/Users/TBG/Documents/PlatformIO/Projects/ssl-firmware/lib/WatchDog",
                     "C:/Users/TBG/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                     "C:/Users/TBG/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
                     ""
