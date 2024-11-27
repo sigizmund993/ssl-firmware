@@ -12,6 +12,6 @@ at the begining of main.cpp
 at the begining of motor.h
 HOW TO UPLOAD:
 -Download visual studio and download extention "Platform IO"
-![chivava](2wCEAAkGBxMTEhUTEhMWFRUXGB0YFhcYFxcXFxgYFxcXGBgXFxcYHSggGB0lHhoXITEhJSkrLi4uFyAzODMtNygtLisBCgoKDg0OGxAQGy0iICYuNSstLS8vLS0rLy0vLS0tLS0tLS8tLS0vLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf)
+![chivava](https://github.com/sigizmund993/ssl-firmware/blob/nrfpackets/minion.png)
 TODO:
 -make dinamyc coefs for gyro to ride in fast speeds
