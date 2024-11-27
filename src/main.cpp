@@ -11,8 +11,8 @@
 #include "NRF24.h"
 #include "Kicker.h"
 #include "IMU.h"
-#define TS_S 0.005
-#define TS_MCS TS_S*1000*1000
+#define TS_S 0.005//iteration length in seconds 
+#define TS_MCS TS_S*1000*1000//iteration length in microseconds
 #define MOTORS_ROBOT_RAD_MM 82.0
 #define ROBOT_MAX_SPEED 3200.0
 #define WHEEL_RAD_MM 23.5
@@ -33,6 +33,7 @@ Indicator indicator(INDICATOR_A, INDICATOR_B, INDICATOR_C, INDICATOR_D, INDICATO
 VoltageMeter voltMeter(BATTERY_VOLTAGE, 5 * 2.5 / 1024.0, 12.4);
 BallSensor ballSensor(BALL_SENSOR, 20);
 NRF nrf(NRF_FREQUENCY,NRF_CHIP_ENABLE, NRF_CHIP_SELECT);
+//GOIDAAAAAAA
 void calcMototVel(float sXmms, float sYmms, float sWrads)
 {
     // float scaler = 1;
@@ -110,6 +111,7 @@ float sXmms = 0;
 float sYmms = 0;
 float sWrads = 0;
 double yaw = 0;
+float gyroKoef = 9;
 void loop()
 {
     // t
@@ -197,7 +199,7 @@ void loop()
         // sXmms = sXlim.tick(sXmms);
         // sYmms = sYlim.tick(sYmms);
         yaw += (sWrads+imu.getYaw())*TS_S;
-        sWrads += 9 * yaw;
+        sWrads += gyroKoef * yaw;
         if (! imu.flat() && IS_FICHA_USED)
         {
             sXmms = 0;
